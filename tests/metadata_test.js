@@ -63,6 +63,26 @@ describe('metadata', function(){
           target('v1', 'task', metadata)
         }).to.throw(Error, /is invalid due to verb/);
       });
+      it('should not throw an error on specific invalid http verb', function () {
+        var nonStandardActionAllowedHttpVerbs = ['put', 'delete', 'post', 'get'];
+        nonStandardActionAllowedHttpVerbs.forEach(function (verb) {
+          action.httpVerb = verb;
+          var metadata = {actions: [action] };
+          expect(function () {
+            target('v1', 'task', metadata)
+          }).to.not.throw(Error);
+        })
+      });
+      it('should throw an error on specific invalid http verb', function () {
+        var nonStandardActionNotAllowedHttpVerbs = ['head', 'options', 'trace', 'connect'];
+        nonStandardActionNotAllowedHttpVerbs.forEach(function (verb) {
+          action.httpVerb = verb;
+          var metadata = {actions: [action] };
+          expect(function () {
+            target('v1', 'task', metadata)
+          }).to.throw(Error);
+        })
+      });
     });
 
     describe('on loading relation', function(){
