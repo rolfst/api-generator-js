@@ -29,10 +29,29 @@ describe('Integration: Alerts Endpoints', function(){
     it('return a model', function(done){
       sinon.stub(clientStub, 'list')
         .withArgs(sinon.match({ userId: 'pjanuario' }))
-        .resolves([stubs.alert]);
+        .resolves({payload: [stubs.alert]});
 
       request(app)
         .get('/v1/me/alerts')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .expect([blueprints.alert])
+        .end(done);
+    });
+  });
+
+  describe('GET /v1/alerts/recent', function(){
+    afterEach(function(){
+      clientStub.call.restore();
+    });
+
+    it('return a model', function(done){
+      sinon.stub(clientStub, 'call')
+        .withArgs('recent')
+        .resolves({payload: [stubs.alert]});
+
+      request(app)
+        .get('/v1/alerts/recent')
         .expect(200)
         .expect('Content-Type', /json/)
         .expect([blueprints.alert])
@@ -48,11 +67,49 @@ describe('Integration: Alerts Endpoints', function(){
     it('return a model', function(done){
       sinon.stub(clientStub, 'get')
         .withArgs(sinon.match({ id: '1' }))
-        .resolves(stubs.alert);
+        .resolves({payload: stubs.alert});
 
       request(app)
         .get('/v1/alerts/1')
         .expect(200)
+        .expect('Content-Type', /json/)
+        .expect(blueprints.alert)
+        .end(done);
+    });
+  });
+
+  describe('PUT /v1/alerts/:id', function(){
+    afterEach(function(){
+      clientStub.call.restore();
+    });
+
+    it('return a model', function(done){
+      sinon.stub(clientStub, 'call')
+        .withArgs('overwritedefault', sinon.match({ id: '1' }), sinon.match.any)
+        .resolves({payload: stubs.alert});
+
+      request(app)
+        .put('/v1/alerts/1')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .expect(blueprints.alert)
+        .end(done);
+    });
+  });
+
+  describe('PUT /v1/alerts/:id', function(){
+    afterEach(function(){
+      clientStub.call.restore();
+    });
+
+    it('return a model with different status', function(done){
+      sinon.stub(clientStub, 'call')
+        .withArgs('overwritedefault', sinon.match({ id: '1' }), sinon.match.any)
+        .resolves({payload: stubs.alert, status: 202});
+
+      request(app)
+        .put('/v1/alerts/1')
+        .expect(202)
         .expect('Content-Type', /json/)
         .expect(blueprints.alert)
         .end(done);

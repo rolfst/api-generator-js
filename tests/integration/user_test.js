@@ -36,10 +36,9 @@ describe('Integration: User Endpoints', function(){
     });
 
     it('return a model resource', function(done){
-      var stub = sinon.stub().resolves(stubs.user);
       sinon.stub(clientStub, 'get')
         .withArgs({id:'pjanuario'})
-        .returns(stub());
+        .resolves({payload: stubs.user});
 
       request(app)
         .get('/v1/users/pjanuario')
@@ -83,10 +82,9 @@ describe('Integration: User Endpoints', function(){
     });
 
     it('return a model resource', function(done){
-      var stub = sinon.stub().resolves(stubs.user);
       sinon.stub(clientStub, 'call')
         .withArgs('activate', {id:'pjanuario'})
-        .returns(stub());
+        .resolves({payload: stubs.user});
 
       request(app)
         .put('/v1/users/pjanuario/active')
@@ -104,11 +102,12 @@ describe('Integration: User Endpoints', function(){
 
     it('return a model resource', function(done){
       sinon.stub(clientStub, 'call')
-        .withArgs('deactivate', {id:'pjanuario'})
-        .resolves(stubs.user);
+        .withArgs('deactivate', {id:'pjanuario', token: 'someextrainfo' })
+        .resolves({payload: stubs.user});
 
       request(app)
         .delete('/v1/users/pjanuario/active')
+        .send({ token: 'someextrainfo' })
         .expect(200)
         .expect('Content-Type', /json/)
         .end(done);

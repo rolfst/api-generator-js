@@ -26,10 +26,113 @@ describe('metadata', function(){
       target('v1', 'task', {}).relations.should.deep.equal([]);
     });
 
+    describe('with valid non standard action', function () {
+      it('should set action resource to true by default', function () {
+        var expected = [{ httpVerb: 'get', name: 'resolve', verb: 'resolve', resource: true, allow: [] }];
+        var action = { httpVerb: 'get', name: 'resolve', verb: 'resolve' };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should not set action resource when specified', function () {
+        var expected = [{ httpVerb: 'get', name: 'resolve', verb: 'resolve', resource: false, allow: [] }];
+        var action = { httpVerb: 'get', name: 'resolve', verb: 'resolve', resource: false };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should allow get http verb', function () {
+        var expected = [{ httpVerb: 'get', name: 'live', verb: 'live', resource: false, allow: [] }];
+        var action = { httpVerb: 'get', name: 'live', verb: 'live', resource: false };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'metric', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should allow post http verb', function () {
+        var expected = [{ httpVerb: 'post', name: 'live', verb: 'live', resource: false, allow: [] }];
+        var action = { httpVerb: 'post', name: 'live', verb: 'live', resource: false };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'metric', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should allow put http verb', function () {
+        var expected = [{ httpVerb: 'put', name: 'live', verb: 'live', resource: false, allow: [] }];
+        var action = { httpVerb: 'put', name: 'live', verb: 'live', resource: false };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'metric', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should allow delete http verb', function () {
+        var expected = [{ httpVerb: 'delete', name: 'live', verb: 'live', resource: false, allow: [] }];
+        var action = { httpVerb: 'delete', name: 'live', verb: 'live', resource: false };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'metric', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+
+      it('should set allow', function () {
+        var expected = [{ httpVerb: 'put', name: 'live', verb: 'live', resource: false, allow: ['prop'] }];
+        var action = { httpVerb: 'put', name: 'live', verb: 'live', resource: false, allow: ['prop'] };
+        var metadata = {actions: [action] };
+        var actual = target('v1', 'metric', metadata).actions;
+        actual.should.be.deep.equal(expected);
+      });
+    });
+
+    describe('with valid standard actions', function () {
+      it('should allow get action', function () {
+        var metadata = {actions: ['get'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['get']);
+      });
+
+      it('should allow list action', function () {
+        var metadata = {actions: ['list'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['list']);
+      });
+
+      it('should allow create action', function () {
+        var metadata = {actions: ['create'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['create']);
+      });
+
+      it('should allow update action', function () {
+        var metadata = {actions: ['update'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['update']);
+      });
+
+      it('should allow remove action', function () {
+        var metadata = {actions: ['remove'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['remove']);
+      });
+
+      it('should allow count action', function () {
+        var metadata = {actions: ['count'] };
+        var actual = target('v1', 'task', metadata).actions;
+        actual.should.be.deep.equal(['count']);
+      });
+    });
+
     describe('with invalid action', function () {
       var action;
       beforeEach(function () {
         action = { httpVerb: 'put', name: 'active', verb: 'activate' };
+      });
+
+      it('should throw a error on invalid standard action', function () {
+        var metadata = {actions: ['invalid'] };
+        expect(function(){
+          target('v1', 'task', metadata)
+        }).to.throw(Error, /is invalid due to standard action/);
       });
 
       it('should throw a error on invalid http verb', function () {
@@ -48,14 +151,6 @@ describe('metadata', function(){
         }).to.throw(Error, /is invalid due to httpVerb/);
       });
 
-      it('should throw a error on invalid name', function () {
-        action.name = '';
-        var metadata = {actions: [action] };
-        expect(function(){
-          target('v1', 'task', metadata)
-        }).to.throw(Error, /is invalid due to name/);
-      });
-
       it('should throw a error on invalid verb', function () {
         action.verb = '';
         var metadata = {actions: [action] };
@@ -66,6 +161,20 @@ describe('metadata', function(){
     });
 
     describe('on loading relation', function(){
+      it('should set relation type', function(){
+        var relation = { type: 'resource', name: 'user' };
+        var metadata = { relations: [ relation ] };
+        target('v1', 'task', metadata).relations[0]
+          .should.have.property('type', 'resource');
+      });
+
+      it('should set relation name', function(){
+        var relation = { type: 'resource', name: 'user' };
+        var metadata = { relations: [ relation ] };
+        target('v1', 'task', metadata).relations[0]
+          .should.have.property('name', 'user');
+      });
+
       it('should set relation version', function(){
         var relation = { type: 'resource', name: 'user' };
         var metadata = { relations: [ relation ] };
@@ -120,6 +229,20 @@ describe('metadata', function(){
         var metadata = { relations: [ relation ] };
         target('v1', 'task', metadata).relations[0]
           .should.have.property('modelFk', 'userId');
+      });
+
+      it('should have count as default false', function(){
+        var relation = { type: 'collection', name: 'tasks' };
+        var metadata = { relations: [ relation ] };
+        target('v1', 'user', metadata).relations[0]
+          .should.have.property('count', false);
+      });
+
+      it('should have count as true', function(){
+        var relation = { type: 'collection', name: 'tasks', count: true };
+        var metadata = { relations: [ relation ] };
+        target('v1', 'user', metadata).relations[0]
+          .should.have.property('count', true);
       });
     });
   });

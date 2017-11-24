@@ -28,6 +28,11 @@ describe('model', function(){
     target({ id: '1' }).should.have.property('name', null);
   });
 
+  it('should set embed relation properties', function(){
+    var actual = target({ id: '1', tasks: []});
+    actual.should.have.property('tasks');
+  });
+
   describe('links', function(){
     it('should set self link', function(){
       var actual = target({ id: '1', name: 'Peter'});
@@ -57,6 +62,15 @@ describe('model', function(){
         var actual = target({ id: '1', name: 'Admin', userId: 'pjanuario'});
         actual.should.have.property('_links');
         actual._links.should.have.property('self', 'http://test/v1/users/pjanuario/roles/1');
+      });
+
+      describe('which dont have a get action', function () {
+        it('should not set self link', function () {
+          var targetWithoutSelf = require('../lib/model')(config, metadata.v1.tag);
+          var actual = targetWithoutSelf({id: 'red', userId: '1'});
+          actual.should.have.property('_links');
+          actual._links.should.have.property('self', null);
+        });
       });
 
       it('should set resource relation link', function(){

@@ -27,6 +27,20 @@ describe('paths', function(){
     });
   });
 
+  describe('#collectionCount', function(){
+    it('should return a pluralized collection count path', function(){
+      target.collectionCount(metadata.v1.task).should.be.eql('/v1/tasks/count');
+    });
+
+    it('should return a pluralized lower case collection count path', function(){
+      target.collectionCount(metadata.v1.userAssignment).should.be.eql('/v1/userassignments/count');
+    });
+
+    it('should return a prefixed collection count path', function(){
+      target.collectionCount(metadata.v1.claim).should.be.eql('/v1/admin/claims/count');
+    });
+  });
+
   describe('#resource', function(){
     it('should return a resource path', function(){
       target.resource(metadata.v1.task).should.be.eql('/v1/tasks/:id');
@@ -61,6 +75,32 @@ describe('paths', function(){
       var relation = metadata.v1.me.relations[0];
       target.resourceRelation(relation).should.be.eql('/v1/me/alerts');
     });
+
+    describe('with model that contains a parent', function(){
+      it('should return a relation resource path', function(){
+        var relation = metadata.v1.user.relations[2];
+        target.resourceRelation(relation).should.be.eql('/v1/users/:userId/roles/:id');
+      });
+    });
+  });
+
+  describe('#resourceRelationCount', function(){
+    it('should throw a error when relation resource path', function(){
+      var relation = metadata.v1.task.relations[0];
+      (function(){
+        target.resourceRelationCount(relation);
+      }).should.throw(Error, /Not supported/);
+    });
+
+    it('should return a relation count path', function(){
+      var relation = metadata.v1.user.relations[0];
+      target.resourceRelationCount(relation).should.be.eql('/v1/users/:id/tasks/count');
+    });
+
+    it('should return a relation count path without identifier', function(){
+      var relation = metadata.v1.me.relations[0];
+      target.resourceRelationCount(relation).should.be.eql('/v1/me/alerts/count');
+    });
   });
 
   describe('#nonStandardAction', function(){
@@ -68,6 +108,12 @@ describe('paths', function(){
       var action = metadata.v1.user.actions[1];
       target.nonStandardAction(metadata.v1.user, action)
         .should.be.eql('/v1/users/:id/active');
+    });
+
+    it('should return a non standard action path without id', function(){
+      var action = metadata.v1.alert.actions[1];
+      target.nonStandardAction(metadata.v1.alert, action)
+        .should.be.eql('/v1/alerts/recent');
     });
   });
 

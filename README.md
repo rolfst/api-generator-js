@@ -33,7 +33,7 @@ var taskMetadata = {
       type: "resource"
     }
   ],
-  actions: ["list", "get", "create", "update", "remove"]
+  actions: ["list", "get", "create", "update", "remove", "count"]
 }
 ```
 
@@ -43,6 +43,7 @@ The list of actions will be translated into the following actions:
 * create: `POST /v1/tasks`
 * update: `PUT /v1/tasks/:id`
 * remove: `DELETE /v1/tasks/:id`
+* count:   `GET /v1/tasks/count`
 
 The relations will result on the following endpoints depending on the type:
 * resource:   `GET /v1/users/:id`
@@ -68,7 +69,7 @@ var metadata = {
           type: "resource"
         }
       ],
-      actions: ["list", "get", "create", "update", "remove"]
+      actions: ["list", "get", "create", "update", "remove", "count"]
     },
     user: {
       properties: [ "id", "name" ],
@@ -133,7 +134,7 @@ app.listen(8081);
 
 ## Excluding some parameters from query string
 
-By default the api generators will forward to the service all query string parameters except token. To override this configuration and have control over it the application can specificly set wich parameters to filter.
+By default the api generators will forward to the service all query string parameters except token and access_token. To override this configuration and have control over it the application can specificly set wich parameters to filter.
 
 
 ```javascript
@@ -207,16 +208,16 @@ As an example we can have the following model configuration (metadata from api-e
 
 This will generate the following routes:
 
-    API::METADATA::INFO - Loaded API Models...
-    API::METADATA::INFO - Loading API routes...
-    API::METADATA::INFO - Mount route GET     /v1/users/:userId/roles
-    API::METADATA::INFO - Mount route GET     /v1/users/:userId/roles/:id
-    API::METADATA::INFO - Mount route POST    /v1/users/:userId/roles
-    API::METADATA::INFO - Mount route PUT     /v1/users/:userId/roles/:id
-    API::METADATA::INFO - Mount route DELETE  /v1/users/:userId/roles/:id
+    MICRO.API.METADATA::INFO - Loaded API Models...
+    MICRO.API.METADATA::INFO - Loading API routes...
+    MICRO.API.METADATA::TRACE - Mount route GET     /v1/users/:userId/roles
+    MICRO.API.METADATA::TRACE - Mount route GET     /v1/users/:userId/roles/:id
+    MICRO.API.METADATA::TRACE - Mount route POST    /v1/users/:userId/roles
+    MICRO.API.METADATA::TRACE - Mount route PUT     /v1/users/:userId/roles/:id
+    MICRO.API.METADATA::TRACE - Mount route DELETE  /v1/users/:userId/roles/:id
     ...
-    API::METADATA::INFO - Loaded API routes...
-    API::INFO - Server running on port 8081
+    MICRO.API.METADATA::INFO - Loaded API routes...
+    MICRO.API::INFO - Server running on port 8081
 
 The parameters `userId` and `id`(on resource endpoints only) will be sent to service on payload.
 
@@ -239,9 +240,9 @@ As an example we can have the following model configuration (metadata from api-e
 
 This will generate the following routes:
 
-    API::METADATA::INFO - Loaded API Models...
-    API::METADATA::INFO - Loading API routes...
-    API::METADATA::INFO - Mount route GET 	/v1/admin/claims
+    MICRO.API.METADATA::INFO - Loaded API Models...
+    MICRO.API.METADATA::INFO - Loading API routes...
+    MICRO.API.METADATA::TRACE - Mount route GET 	/v1/admin/claims
 
 ## Overriding default paths
 
@@ -262,7 +263,7 @@ As an example we can have the following model configuration (metadata api-exampl
 This will generate a route `GET /me` instead of `GET /mes`.
 
 
-# Support current user endpoints
+## Support current user endpoints
 
 If we have a model that doesn't needs an identifier to be requested such as `me`, we can define what is the property present in request user object that should be sent in the payload.
 
@@ -281,6 +282,61 @@ As an example we can have the following model configuration (metadata api-exampl
 This will generate a route `GET /me` where the property `userId` will be sent in the payload. The value for the userId property will be retrieved from current user object `req.user`.
 
 The following model contains a alert relation and the `userId` property will also be sent in the relation payload.
+
+## Embeds support
+
+This feature will allow to embed relations in the resource payload using a single call from the consumer. The relations can be a collection or single resource depending on the model definition. The relation name will be set as a property in the model payload.
+
+The embeds will use the `batch` operation from embedable model using the following payload contract for request and response:
+
+* `one-to-one` relations will send the following payload:
+
+```javascript
+// Batch request payload example to embed users in a task model
+{ id: ['pjanuario'] }
+
+// Response:
+[
+  {
+    id: 'pjanuario',
+    data: {
+      id: "pjanuario",
+      name: "Pedro",
+      active: true,
+      roleId: "1",
+      _links: {
+        self: "/users/pjanuario",
+        tasks: "/users/pjanuario/tasks",
+        userAssignments: "/users/pjanuario/userassignments",
+        role: "/users/pjanuario/roles/1"
+      }
+    }
+  }
+]
+```
+
+* `one-to-many` relations will send the following payload:
+
+```javascript
+// Batch request payload example to embed tasks in a user model
+{ userId: ['pjanuario'] }
+
+// Response:
+[
+  {
+    userId: 'pjanuario',
+    data: [{
+      id: "1",
+      active: true,
+      userId: "pjanuario",
+      _links: {
+        self: "/tasks/1",
+        user: "/users/pjanuario"
+      }
+    }]
+  }
+]
+```
 
 ## Contributing
 

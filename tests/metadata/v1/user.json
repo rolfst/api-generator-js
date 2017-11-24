@@ -1,18 +1,13 @@
 {
-  "properties": [ "id", "name", "active" ],
+  "properties": [ "id", "name", "active", "roleId" ],
   "relations": [
-    {
-      "name": "tasks",
-      "type": "collection"
-    },
-    {
-      "name": "userAssignments",
-      "type": "collection"
-    }
+    { "name": "tasks", "type": "collection", "count": true },
+    { "name": "userAssignments", "type": "collection" },
+    { "name": "role", "type": "resource" }
   ],
   "actions": [
     "get",
     { "name": "active", "httpVerb": "PUT", "verb": "activate" },
-    { "name": "active", "httpVerb": "DELETE", "verb": "deactivate" }
+    { "name": "active", "httpVerb": "DELETE", "verb": "deactivate", "allow": "token" }
   ]
 }
